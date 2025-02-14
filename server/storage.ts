@@ -4,6 +4,7 @@ export interface IStorage {
   getSubjects(): Promise<Subject[]>;
   getSubject(slug: string): Promise<Subject | undefined>;
   getQuestionsBySubject(subjectId: number): Promise<Question[]>;
+  addQuestion(question: InsertQuestion): Promise<Question>;
   getAsmrTracks(): Promise<AsmrTrack[]>;
 }
 
@@ -35,14 +36,26 @@ export class MemStorage implements IStorage {
     });
 
     const questions: (InsertQuestion & { subjectId: number })[] = [
-      { subjectId: 1, question: "What is the Pythagorean theorem?", answer: "a² + b² = c²", difficulty: "medium" },
-      { subjectId: 2, question: "What is photosynthesis?", answer: "The process by which plants convert light energy into chemical energy", difficulty: "medium" },
-      // Add more sample questions
+      { 
+        subjectId: 1, 
+        question: "What is the Pythagorean theorem?", 
+        answer: "a² + b² = c²", 
+        difficulty: "medium",
+        isUserSubmitted: 0
+      },
+      { 
+        subjectId: 2, 
+        question: "What is photosynthesis?", 
+        answer: "The process by which plants convert light energy into chemical energy", 
+        difficulty: "medium",
+        isUserSubmitted: 0
+      }
     ];
 
     questions.forEach(question => {
       const id = this.currentId++;
-      this.questions.set(id, { ...question, id });
+      const timestamp = new Date();
+      this.questions.set(id, { ...question, id, createdAt: timestamp });
     });
 
     const asmrTracks: InsertAsmrTrack[] = [
@@ -81,7 +94,17 @@ export class MemStorage implements IStorage {
   }
 
   async getQuestionsBySubject(subjectId: number): Promise<Question[]> {
-    return Array.from(this.questions.values()).filter(q => q.subjectId === subjectId);
+    return Array.from(this.questions.values())
+      .filter(q => q.subjectId === subjectId)
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  }
+
+  async addQuestion(question: InsertQuestion): Promise<Question> {
+    const id = this.currentId++;
+    const timestamp = new Date();
+    const newQuestion: Question = { ...question, id, createdAt: timestamp, isUserSubmitted: 1 };
+    this.questions.set(id, newQuestion);
+    return newQuestion;
   }
 
   async getAsmrTracks(): Promise<AsmrTrack[]> {

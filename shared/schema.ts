@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, json } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, json, timestamp } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -14,6 +14,8 @@ export const questions = pgTable("questions", {
   question: text("question").notNull(),
   answer: text("answer").notNull(),
   difficulty: text("difficulty").notNull(),
+  isUserSubmitted: integer("is_user_submitted").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
 export const asmrTracks = pgTable("asmr_tracks", {
@@ -23,7 +25,10 @@ export const asmrTracks = pgTable("asmr_tracks", {
   config: json("config").notNull(), // Animation/sound config
 });
 
-export const insertQuestionSchema = createInsertSchema(questions).omit({ id: true });
+export const insertQuestionSchema = createInsertSchema(questions).omit({ 
+  id: true,
+  createdAt: true
+});
 export const insertSubjectSchema = createInsertSchema(subjects).omit({ id: true });
 export const insertAsmrTrackSchema = createInsertSchema(asmrTracks).omit({ id: true });
 
