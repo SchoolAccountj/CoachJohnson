@@ -3,8 +3,8 @@ import { useRoute } from "wouter";
 import { SubjectNav } from "@/components/SubjectNav";
 import { QuestionCard } from "@/components/QuestionCard";
 import { QuestionForm } from "@/components/QuestionForm";
-import { RainAnimation } from "@/components/RainAnimation";
-import type { Subject, Question } from "@shared/schema";
+import { ASMRPlayer } from "@/components/ASMRPlayer";
+import type { Subject, Question, AsmrTrack } from "@shared/schema";
 
 export default function SubjectPage() {
   const [, params] = useRoute("/subjects/:slug");
@@ -19,8 +19,11 @@ export default function SubjectPage() {
     enabled: !!subject,
   });
 
+  const { data: asmrTracks } = useQuery<AsmrTrack[]>({
+    queryKey: ['/api/asmr-tracks'],
+  });
+
   const handleQuestionAdded = () => {
-    // Invalidate and refetch questions
     queryClient.invalidateQueries({
       queryKey: [`/api/subjects/${subject?.id}/questions`],
     });
@@ -29,14 +32,17 @@ export default function SubjectPage() {
   if (!subject) return null;
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <RainAnimation intensity={0.3} />
-
+    <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          <aside className="lg:col-span-3">
-            <h2 className="text-2xl font-bold mb-4">Subjects</h2>
-            <SubjectNav />
+          <aside className="lg:col-span-3 space-y-6">
+            <div>
+              <h2 className="text-2xl font-bold mb-4">Subjects</h2>
+              <SubjectNav />
+            </div>
+            {asmrTracks?.map((track) => (
+              <ASMRPlayer key={track.id} track={track} />
+            ))}
           </aside>
 
           <main className="lg:col-span-9">
